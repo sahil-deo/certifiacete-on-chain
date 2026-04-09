@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CertificateOnChain is ERC721, Ownable{
 
     error TransferNotAllowed();
+    error InvalidToken();
 
     uint256 private _nextTokenId;
 
@@ -40,15 +41,31 @@ contract CertificateOnChain is ERC721, Ownable{
         return tokenId;
     }
 
-    function getCertificates() external view returns (metaData[] memory){
+    function getCertificateById(uint256 id) external view returns (metaData memory){
         
-        uint256[] memory tokenIds = _tokenOwners[msg.sender];
-        metaData[] memory result = new metaData[](tokenIds.length);
-        for(uint256 i = 0;i<_nextTokenId;i++){
-            if(_ownerOf(i)==msg.sender){
-                result[i]= _metaData[tokenIds[i]];
+        if(id > _nextTokenId){
+            revert InvalidToken();
+        }
+        return _metaData[id];
+    }
+
+    function getCertificatesByAddress(uint256) external view returns (metaData[] memory){
+        uint256 count = 0;
+        for(uint256 i = 0; i<_nextTokenId; i++){
+            if(_ownerOf(i) == msg.sender){
+                count++;
             }
         }
+
+        metaData[] memory result = new metaData[](count);
+        uint256 index = 0;
+        for(uint256 i=0;i<_nextTokenId; i++){
+            if(_ownerOf(i) == msg.sender){
+                result[index++] = _metaData[i];
+            }
+        } 
+
         return result;
     }
+
 }
