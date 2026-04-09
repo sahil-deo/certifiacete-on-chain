@@ -15,7 +15,7 @@ contract CertificateOnChain is ERC721, Ownable{
     struct metaData{
         string name;
         string date;
-        string certificate_id;
+        string course;
         string imageURI;
     }
 
@@ -31,9 +31,9 @@ contract CertificateOnChain is ERC721, Ownable{
         return super._update(to, tokenId, auth);
     }
 
-    function mint(address recepient, string memory name, string memory date, string memory id, string memory image) external onlyOwner returns (uint256) {
+    function mint(address recepient, string memory name, string memory date, string memory course, string memory image) external onlyOwner returns (uint256) {
         
-        metaData memory meta = metaData(name, date, id, image);
+        metaData memory meta = metaData(name, date, course, image);
         uint256 tokenId = _nextTokenId++;
         _mint(recepient, tokenId);
         _metaData[tokenId] = meta;
@@ -43,16 +43,16 @@ contract CertificateOnChain is ERC721, Ownable{
 
     function getCertificateById(uint256 id) external view returns (metaData memory){
         
-        if(id > _nextTokenId){
+        if(id >= _nextTokenId){
             revert InvalidToken();
         }
         return _metaData[id];
     }
 
-    function getCertificatesByAddress(uint256) external view returns (metaData[] memory){
+    function getCertificatesByAddress(address walletAddress) external view returns (metaData[] memory){
         uint256 count = 0;
         for(uint256 i = 0; i<_nextTokenId; i++){
-            if(_ownerOf(i) == msg.sender){
+            if(_ownerOf(i) == walletAddress){
                 count++;
             }
         }
@@ -60,7 +60,7 @@ contract CertificateOnChain is ERC721, Ownable{
         metaData[] memory result = new metaData[](count);
         uint256 index = 0;
         for(uint256 i=0;i<_nextTokenId; i++){
-            if(_ownerOf(i) == msg.sender){
+            if(_ownerOf(i) == walletAddress){
                 result[index++] = _metaData[i];
             }
         } 
@@ -68,4 +68,8 @@ contract CertificateOnChain is ERC721, Ownable{
         return result;
     }
 
+
+    function getNextId() external view returns (uint256) {
+        return _nextTokenId;
+    }
 }
